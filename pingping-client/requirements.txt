@@ -1,0 +1,4 @@
+pygame
+pyyaml
+requests
+sounddevice

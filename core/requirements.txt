@@ -1,0 +1,7 @@
+sounddevice
+speechrecognition
+google-cloud-texttospeech
+requests
+aiohttp
+pydub
+openai
