@@ -1,5 +1,9 @@
 
 import os
+from dotenv import load_dotenv
+load_dotenv()
+
+
 # ✅ General settings
 PROJECT_NAME = "HANA - Server"
 LOG_LEVEL = "DEBUG"
@@ -17,7 +21,11 @@ HA_TOKEN = os.getenv("HA_TOKEN", "")
 # ✅ Client Settings
 GPT_SERVER_ENDPOINT = os.getenv("GPT_SERVER_ENDPOINT", "http://192.168.100.101:8000/chat")
 TTS_SERVER_ENDPOINT = os.getenv("TTS_SERVER_ENDPOINT", "http://192.168.100.101:8000/chat")
-GOOGLE_CLOUD_CREDENTIALS_PATH = os.getenv("GOOGLE_CLOUD_CREDENTIALS_PATH", "~/Workspace/smart-assistant-client-server/server/gctts_key.json")
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.expanduser("~/Workspace/smart-assistant-client-server/server/gctts_key.json")
+
+TTS_PATH = os.getenv("TTS_PATH", ".")
+
+TTS_PROVIDER="GoogleCloudTTS"
 
 TUYA_ACCESS_ID = os.getenv("TUYA_ACCESS_ID", "")
 TUYA_ACCESS_KEY = os.getenv("TUYA_ACCESS_KEY", "")

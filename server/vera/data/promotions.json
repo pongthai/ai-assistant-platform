@@ -1,0 +1,28 @@
+[
+  {
+    "id": "P001",
+    "title": "ซื้อครบ 100 บาท รับแต้ม 2 เท่า!",
+    "type": "point_campaign",
+    "condition": {
+      "min_spend": 100,
+      "bonus_points_multiplier": 2
+    }
+  },
+  {
+    "id": "P002",
+    "title": "ซื้อ 2 แก้วขึ้นไป ลดทันที 10 บาท",
+    "type": "bulk_discount",
+    "condition": {
+      "min_quantity": 2,
+      "discount_amount": 10
+    }
+  },
+  {
+    "id": "P003",
+    "title": "ลูกค้าใหม่ รับฟรี Topping 1 อย่าง",
+    "type": "new_customer_offer",
+    "condition": {
+      "first_order_only": true
+    }
+  }
+]
