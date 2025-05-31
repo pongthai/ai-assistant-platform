@@ -3,3 +3,7 @@ uvicorn[standard]
 httpx
 openai
 python-dotenv
+requests
+bs4
+yfinance
+feedparser

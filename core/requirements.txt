@@ -1,7 +1,14 @@
 sounddevice
+soundfile
 speechrecognition
 google-cloud-texttospeech
 requests
 aiohttp
 pydub
 openai
+numpy
+scipy
+webrtcvad
+python-dotenv
+google-cloud-speech
+google.cloud
