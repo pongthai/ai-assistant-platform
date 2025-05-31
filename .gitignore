@@ -16,3 +16,5 @@ build/
 logs/
 memory.db
 usage_log.json
+core/test/venv
+server/venv
