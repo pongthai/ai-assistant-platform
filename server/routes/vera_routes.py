@@ -151,6 +151,7 @@ async def ask_user(req: AskRequest):
             logger.info(f"✅ Order added: {order_item}")
 
         reply_ssml = gpt_result.get("response", reply_text)
+        logger.debug(f"GPT reply SSML: {reply_ssml}")
         intent = gpt_result.get("intent", "")
     else:
         logger.warning("⚠️ GPT ตอบไม่ใช่ JSON ใช้ข้อความดิบแทน")

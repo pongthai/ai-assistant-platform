@@ -18,3 +18,7 @@ memory.db
 usage_log.json
 core/test/venv
 server/venv
+vera_kiosk/venv
+vera_kiosk/secrets
+mira_table/venv
+mira_table/secrets

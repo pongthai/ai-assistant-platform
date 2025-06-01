@@ -1,3 +1,0 @@
-flask  # ใช้เผื่อมี web UI หรือ dashboard ง่ายๆ
-requests
-pyttsx3  # optional TTS engine

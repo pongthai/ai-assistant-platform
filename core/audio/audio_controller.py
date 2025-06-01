@@ -8,7 +8,7 @@ import requests
 import scipy.signal
 import time
 
-from core.config.config import TEMP_AUDIO_PATH, TTS_SERVER_ENDPOINT, SAMPLE_RATE, AVATAR_SCALE, AVATAR_STATIC, AVATAR_ANIMATION, ENABLE_AVATAR_DISPLAY
+from core.config.config import TEMP_AUDIO_PATH, SAMPLE_RATE, AVATAR_SCALE, AVATAR_STATIC, AVATAR_ANIMATION, ENABLE_AVATAR_DISPLAY
 from core.utils.logger_config import get_logger
 
 logger = get_logger(__name__)
