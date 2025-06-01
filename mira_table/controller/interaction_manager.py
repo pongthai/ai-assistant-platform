@@ -2,6 +2,7 @@ from mira_table.state_machine.state_manager import StateManager, State
 from mira_table.api.server_api import send_text_to_server, reset_session, play_tts
 from core.audio.voice_listener import VoiceListener
 from core.audio.audio_controller import AudioController
+from mira_table.config import SESSION_ID
 import core.audio.audio_config
 
 import time
@@ -18,7 +19,7 @@ class PlaybackHandler:
         print("[Handler] 🔇 Audio playback stopped")
 
 class InteractionManager:
-    def __init__(self, session_id="kiosk-session"):
+    def __init__(self, session_id=SESSION_ID):
         logger.debug("InteractionManager - Initialzied")
         self.session_id = session_id
         self.state = StateManager()
@@ -27,7 +28,7 @@ class InteractionManager:
         playback_handler = PlaybackHandler()
         self.audio_controller = AudioController(playback_handler=playback_handler )       
         self.voice_listener = VoiceListener(self.audio_controller,wake_event,stt_vendor="google_cloud")
-        self.voice_listener.pause_background_listener()        
+        self.voice_listener.pause_background_listener()               
 
     def run(self):
         self.state.set_state(State.START)
@@ -104,6 +105,9 @@ class InteractionManager:
         elif intent == "show_promotion":
             self.state.set_state(State.LISTENING)
 
+        elif intent == "request_bill":
+            self.state.set_state(State.LISTENING)
+
         elif intent == "confirm_order":
             self.state.set_state(State.CONFIRMING)
             
@@ -113,7 +117,7 @@ class InteractionManager:
         elif intent == "open_topic":
             self.state.set_state(State.LISTENING)
     
-        elif intent == "recomend_dish":
+        elif intent == "recommend_dish":
             self.state.set_state(State.LISTENING)
 
         elif intent == "thank_you":

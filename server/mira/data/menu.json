@@ -34,5 +34,47 @@
     "name": "เค้กช็อกโกแลต",
     "category": "dessert",
     "price": 45
+  }  ,
+  {
+    "id": "M003",
+    "name": "ผัดไทยกุ้งสด",
+    "category": "main",
+    "price": 80
+  },
+  {
+    "id": "M004",
+    "name": "ต้มยำกุ้ง",
+    "category": "main",
+    "price": 95
+  },
+  {
+    "id": "M005",
+    "name": "ขนมจีนแกงเขียวหวาน",
+    "category": "main",
+    "price": 85
+  },
+  {
+    "id": "D003",
+    "name": "น้ำแตงโมปั่น",
+    "category": "drink",
+    "price": 40
+  },
+  {
+    "id": "D004",
+    "name": "โค้กกระป๋อง",
+    "category": "drink",
+    "price": 25
+  },
+  {
+    "id": "S003",
+    "name": "บิงซูมะม่วง",
+    "category": "dessert",
+    "price": 95
+  },
+  {
+    "id": "S004",
+    "name": "ไอศกรีมวานิลลา",
+    "category": "dessert",
+    "price": 40
   }
 ]

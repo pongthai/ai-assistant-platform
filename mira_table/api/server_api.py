@@ -2,13 +2,13 @@ import requests
 import tempfile
 import os
 import pygame
-from mira_table.config import SERVER_HOST
+from mira_table.config import SERVER_HOST, SESSION_ID
 from core.utils.logger_config import get_logger
 
 logger = get_logger(__name__)
 
 
-def send_text_to_server(text, session_id="default-session"):
+def send_text_to_server(text, session_id=SESSION_ID):
     try:
         response = requests.post(
             f"{SERVER_HOST}/ask",
@@ -44,7 +44,7 @@ def play_tts(tts_url):
         logger.error(f"Error playing TTS: {e}")
 
 
-def reset_session(session_id="default-session"):
+def reset_session(session_id=SESSION_ID):
     try:
         response = requests.post(
             f"{SERVER_HOST}/reset-session",

@@ -9,24 +9,13 @@ from server.mira.services.gpt_client import ask_gpt
 from core.audio.tts_manager import TTSManager
 from server.vera.services.tts_module import generate_tts
 from server.mira.handlers.intent_routes import route_intent
-from pathlib import Path
-from typing import Optional, List
+from typing import Optional
 import uuid
 import os
 from core.utils.logger_config import get_logger
 from server.config.config import OPENAI_API_KEY, OPENAI_MODEL, TTS_PATH
 
 logger = get_logger(__name__)
-
-# Load menu and promotions once at startup
-MENU_PATH = Path("server/mira/data/menu.json")
-PROMO_PATH = Path("server/mira/data/promotions.json")
-
-with MENU_PATH.open("r", encoding="utf-8") as f:
-    MENU_DATA = json.load(f)
-
-with PROMO_PATH.open("r", encoding="utf-8") as f:
-    PROMOTIONS = json.load(f)
 
 router = APIRouter()
 tts_manager = TTSManager()
@@ -42,24 +31,20 @@ def safe_parse_json(text: str) -> Optional[dict]:
 
 @router.post("/ask")
 async def ask_user(req: AskRequest):
-    prompt_builder = PromptBuilder(MENU_DATA, PROMOTIONS)
+    logger.debug(f"Received user input[{req.session_id}]: {req.user_input} ")
     session_id = req.session_id
     user_input = req.user_input.strip()
+    res = session_manager.is_fresh(session_id)
+    logger.debug(f"Session Fresh: {res}")
 
     # Initialize session if needed
-    if not session_manager.has_session(session_id):
+    if session_manager.is_fresh(session_id):
+        prompt_builder = PromptBuilder()
         init_prompt = prompt_builder.build_init_prompt()
         session_manager.init_session(session_id, system_prompt=init_prompt)
 
-    # Build prompt
-    prompt = prompt_builder.build_user_prompt(user_input)
-
-    # Add user message to history
-    session_manager.add_user_message(session_id, prompt)
-    messages = session_manager.get_history(session_id)
-
-    # Ask GPT
-    reply_text = ask_gpt(messages)
+    session_manager.summarize_if_needed(session_id)
+    reply_text = ask_gpt(session_id, user_input)
     logger.debug(f"User input: {user_input}, Reply: {reply_text}")
     session_manager.add_assistant_reply(session_id, reply_text)
 
