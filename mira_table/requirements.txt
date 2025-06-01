@@ -1,0 +1,11 @@
+SpeechRecognition
+pygame
+requests
+sounddevice
+webrtcvad
+numpy
+pygame
+python-dotenv
+google-cloud-speech
+scipy
+soundfile

@@ -1,0 +1,18 @@
+[
+  {
+    "id": "P001",
+    "description": "สั่งอาหาร 2 อย่างขึ้นไป ลด 10 บาท",
+    "condition": {
+      "min_items": 2,
+      "discount": 10
+    }
+  },
+  {
+    "id": "P002",
+    "description": "ซื้อข้าว+เครื่องดื่ม รับส่วนลด 5 บาท",
+    "condition": {
+      "required_categories": ["main", "drink"],
+      "discount": 5
+    }
+  }
+]

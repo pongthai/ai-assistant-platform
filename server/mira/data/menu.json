@@ -1,0 +1,38 @@
+[
+  {
+    "id": "M001",
+    "name": "ข้าวผัดกุ้ง",
+    "category": "main",
+    "price": 75
+  },
+  {
+    "id": "M002",
+    "name": "ข้าวกระเพราไก่ไข่ดาว",
+    "category": "main",
+    "price": 70
+  },
+  {
+    "id": "D001",
+    "name": "ชาเย็น",
+    "category": "drink",
+    "price": 35
+  },
+  {
+    "id": "D002",
+    "name": "น้ำเปล่า",
+    "category": "drink",
+    "price": 20
+  },
+  {
+    "id": "S001",
+    "name": "ขนมปังปิ้งเนยน้ำตาล",
+    "category": "dessert",
+    "price": 30
+  },
+  {
+    "id": "S002",
+    "name": "เค้กช็อกโกแลต",
+    "category": "dessert",
+    "price": 45
+  }
+]
