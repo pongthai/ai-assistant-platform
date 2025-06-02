@@ -1,6 +1,13 @@
+import asyncio
+from collections import defaultdict
+from core.utils.logger_config import get_logger
+
+logger = get_logger(__name__)
+
 class SessionManager:
     def __init__(self):
         self.sessions = {}
+        self.session_locks = defaultdict(asyncio.Lock)
 
     def init_session(self, session_id, system_prompt=""):
         self.sessions[session_id] = {
@@ -23,19 +30,21 @@ class SessionManager:
 
     def get_history(self, session_id):
         session = self.sessions.get(session_id, {})
-        system_prompt = session.get("system_prompt", "")
-        history = session.get("history", [])
-        messages = [{"role": "system", "content": system_prompt}] if system_prompt else []
-        messages.extend(history)
-        return messages
+        return session.get("history", [])
 
     def add_user_message(self, session_id, message):
+        logger.debug(f"[{session_id}] 👤 User: {message}")
         self.sessions[session_id]["history"].append({"role": "user", "content": message})
         self.sessions[session_id]["fresh"] = False
 
     def add_assistant_reply(self, session_id, message):
+        logger.debug(f"[{session_id}] 🤖 Assistant: {message}")
         self.sessions[session_id]["history"].append({"role": "assistant", "content": message})
         self.sessions[session_id]["fresh"] = False
+
+    def add_interaction(self, session_id, user_message, assistant_message):
+        self.add_user_message(session_id, user_message)
+        self.add_assistant_reply(session_id, assistant_message)
 
     def add_order_item(self, session_id, item):
         self.sessions[session_id]["orders"].append(item)
@@ -91,29 +100,51 @@ class SessionManager:
         return self.sessions.get(session_id, {}).get("system_prompt", "")
     
 
-    def summarize_if_needed(self, session_id):
-        history = self.sessions.get(session_id, {}).get("history", [])
-        total_characters = sum(len(msg["content"]) for msg in history if msg["role"] != "system")
-        if len(history) > 10 or total_characters > 3000:
-            summary_text = self.get_summarized_history(session_id, history)
-            self.sessions[session_id]["summary_text"] = summary_text
-            self.sessions[session_id]["history"] = []
+    async def summarize_if_needed(self, session_id):
+        async with self.session_locks[session_id]:
+            history = self.sessions.get(session_id, {}).get("history", [])
+            total_characters = sum(len(msg["content"]) for msg in history if msg["role"] != "system")
+            if len(history) > 10 or total_characters > 3000:
+                summary_text = await self._summarize_history(session_id, history)
+                self.sessions[session_id]["summary_text"] = summary_text
+                self.sessions[session_id]["history"] = []
 
-    def get_summarized_history(self, session_id, history):
+    async def _summarize_history(self, session_id, history):        
         from server.mira.services.gpt_client import gpt_summarize
         import re
-        messages_to_summarize = [
-            {"role": msg["role"], "content": re.sub(r"<[^>]+>", "", msg["content"])}
-            for msg in history if msg["role"] != "system"
-        ]
+        logger.debug(f"enter _summarize_history")
+        combined_texts = []
+        for msg in history:
+            if msg["role"] == "system":
+                continue
+            content = msg.get("content", "")
+            if isinstance(content, list):
+                text = " ".join(part.get("text", "") for part in content if isinstance(part, dict))
+            else:
+                text = content
+            cleaned_text = re.sub(r"<[^>]+>", "", text)
+            combined_texts.append(cleaned_text)
+
         previous_summary = self.sessions[session_id].get("summary_text", "")
         if previous_summary:
-            messages_to_summarize.insert(0, {"role": "system", "content": previous_summary})
-        summary = gpt_summarize(messages_to_summarize)
+            combined_texts.insert(0, previous_summary)
+
+        full_text = "\n".join(combined_texts)
+        summary = await gpt_summarize(full_text)
         return summary
 
     def get_summary_text(self, session_id):
         return self.sessions.get(session_id, {}).get("summary_text", "")
     
+    async def get_full_context(self, session_id):
+        async with self.session_locks[session_id]:
+            context = []
+            if self.sessions[session_id].get("system_prompt"):
+                context.append({"role": "system", "content": self.sessions[session_id]["system_prompt"]})
+            if self.sessions[session_id].get("summary_text"):
+                context.append({"role": "system", "content": self.sessions[session_id]["summary_text"]})
+            context += self.sessions[session_id].get("history", []).copy()
+            return context
+
     # Create a singleton instance for import
 session_manager = SessionManager()

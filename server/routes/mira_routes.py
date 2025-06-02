@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse, FileResponse
 from server.mira.models.user_input import AskRequest, ResetSessionRequest
 from server.mira.services.session_manager import session_manager
 from server.mira.services.prompt_builder import PromptBuilder
-from server.mira.services.gpt_client import ask_gpt
+from server.mira.services.gpt_client import ask_gpt  # now async
 from core.audio.tts_manager import TTSManager
 from server.vera.services.tts_module import generate_tts
 from server.mira.handlers.intent_routes import route_intent
@@ -43,19 +43,17 @@ async def ask_user(req: AskRequest):
         init_prompt = prompt_builder.build_init_prompt()
         session_manager.init_session(session_id, system_prompt=init_prompt)
 
-    session_manager.summarize_if_needed(session_id)
-    reply_text = ask_gpt(session_id, user_input)
+    reply_text = await ask_gpt(session_id, user_input)
     logger.debug(f"User input: {user_input}, Reply: {reply_text}")
-    session_manager.add_assistant_reply(session_id, reply_text)
 
     try:
         gpt_result = safe_parse_json(reply_text)
         reply_ssml = gpt_result.get("response", reply_text)
         logger.debug(f"GPT reply SSML: {reply_ssml}")
-        intent = gpt_result.get("intent", "unknown")      
+        intent = gpt_result.get("intent", "unknown")
     except Exception as e:
         intent = "unknown"
-        response = reply_text
+        reply_ssml = reply_text
         result = {"note": "⚠️ GPT reply is not JSON", "error": str(e)}
         logger.error(f"Error processing GPT reply: {result}")
 

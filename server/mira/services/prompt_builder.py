@@ -1,7 +1,7 @@
 from pathlib import Path
 import json
 from core.utils.logger_config import get_logger
-logger = get_logger()
+logger = get_logger(__name__)
 
 # Load menu and promotions once at startup
 MENU_PATH = Path("server/mira/data/menu.json")

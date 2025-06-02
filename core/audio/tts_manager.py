@@ -16,6 +16,13 @@ class TTSManager:
         else:
             self.output_dir = "."  # macOS หรือ fallback → เก็บไว้ใน current folder    
 
+    def strip_unsupported_tags(self, text: str) -> str:
+        # แปลง <b>, <i>, <u>, <strong> ที่ไม่รองรับ โดยลบทิ้งหรือแทนที่
+        unsupported_tags = ["b", "i", "u", "strong"]
+        for tag in unsupported_tags:
+            text = re.sub(fr"</?{tag}>", "", text)
+        return text
+
     def normalize_ssml_for_neural2(self,text: str) -> str:
         """
         สำหรับ Google TTS Neural2:
@@ -118,9 +125,10 @@ class TTSManager:
     def synthesize(self, text: str, is_ssml=False) -> str:
         client = texttospeech.TextToSpeechClient()
 
-        if is_ssml:                 
+        if is_ssml:
+            text = self.strip_unsupported_tags(text)
             safe_ssml = self.sanitize_ssml_text(text)
-            safe_ssml = self.markdown_to_ssml(safe_ssml)            
+            safe_ssml = self.markdown_to_ssml(safe_ssml)
             # safe_ssml = self.normalize_ssml_for_neural2(safe_ssml)
             synthesis_input = texttospeech.SynthesisInput(ssml=safe_ssml)
         else:
