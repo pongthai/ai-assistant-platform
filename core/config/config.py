@@ -1,13 +1,12 @@
 import os
 from dotenv import load_dotenv
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.expanduser("~/Workspace/smart-assistant-client-server/server/gctts_key.json")
-
 load_dotenv()  # โหลดจาก .env อัตโนมัติ
 
 # ✅ General settings
 PROJECT_NAME = "Smart Assistant - Core"
+
 DEBUG_MODE = True
-LOG_LEVEL = "DEBUG"
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 
 # ✅ Server Settings
 SERVER_HOST = "0.0.0.0"
