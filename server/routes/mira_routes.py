@@ -61,15 +61,15 @@ async def ask_user(req: AskRequest):
 
     #tts_path = tts_manager.synthesize(response)
 
-    tts_id = str(uuid.uuid4())
-    tts_path = os.path.join(TTS_PATH, f"{tts_id}.mp3")
-    generate_tts(reply_ssml, tts_path)
-    TEMP_TTS_STORE[tts_id] = tts_path
-    logger.info(f"Generated TTS file: {tts_path}")
+    # tts_id = str(uuid.uuid4())
+    # tts_path = os.path.join(TTS_PATH, f"{tts_id}.mp3")
+    # generate_tts(reply_ssml, tts_path)
+    # TEMP_TTS_STORE[tts_id] = tts_path
+    # logger.info(f"Generated TTS file: {tts_path}")
 
     return JSONResponse({
         "reply_text": reply_ssml,
-        "tts_url": f"/speak/{tts_id}",
+        #"tts_url": f"/speak/{tts_id}",        
         "intent": intent
     })
 
