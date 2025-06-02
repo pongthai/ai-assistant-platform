@@ -43,6 +43,7 @@ ENABLE_AVATAR_DISPLAY = True
 AVATAR_SCALE = 1.0
 TEMP_AUDIO_PATH = "/dev/shm"
 SAMPLE_RATE = 48000
+AUDIO_DTYPE="float32"
 AVATAR_STATIC = "pingping_static_v3.png"
 AVATAR_ANIMATION = "pingping_animation_v3.gif"
 SESSION_ID = os.getenv("SESSION_ID", "rasp-pi-001")

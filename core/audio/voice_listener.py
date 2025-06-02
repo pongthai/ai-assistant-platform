@@ -24,6 +24,7 @@ from core.config.config import (
     CONFIRMATION_KEYWORDS,
     CANCEL_KEYWORDS,
     SAMPLE_RATE,
+    AUDIO_DTYPE,
 )
 from core.utils.logger_config import get_logger
 
@@ -73,7 +74,7 @@ class VoiceListener:
         def callback(indata, frames, time_info, status):
             samples.append(indata[:, 0].copy())
         
-        with sd.InputStream(samplerate=SAMPLE_RATE, channels=CHANNELS, callback=callback, dtype='float32'):
+        with sd.InputStream(samplerate=SAMPLE_RATE, channels=CHANNELS, callback=callback, dtype=AUDIO_DTYPE):
             sd.sleep(int(duration * 1000))
 
         all_audio = np.concatenate(samples)
@@ -179,7 +180,7 @@ class VoiceListener:
                 consecutive_voice_frames = max(consecutive_voice_frames - 1, 0)
 
         try:
-            with sd.InputStream(samplerate=SAMPLE_RATE, channels=CHANNELS, callback=callback, dtype='float32'):
+            with sd.InputStream(samplerate=SAMPLE_RATE, channels=CHANNELS, callback=callback, dtype=AUDIO_DTYPE):
                 logger.debug("🎧 InputStream opened — listening...")
                 start_time = time.time()
                 while not stop_event.is_set() and time.time() - start_time < MAX_RECORD_SECONDS:
