@@ -64,6 +64,10 @@ class VoiceListener:
         self.background_enabled = True
 
     def calculate_volume_db(self,chunk):
+            chunk = chunk.astype(np.float32)
+            if AUDIO_DTYPE == 'int16':
+                chunk = chunk.astype(np.float32) / 32768.0  # normalize ก่อนคำนวณ
+
             rms = np.sqrt(np.mean(chunk ** 2)) + 1e-10
             return 20 * np.log10(rms)
 
