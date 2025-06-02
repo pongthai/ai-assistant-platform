@@ -2,6 +2,8 @@ import os
 from dotenv import load_dotenv
 load_dotenv()  # โหลดจาก .env อัตโนมัติ
 
+#Add from server side
+
 # ✅ General settings
 PROJECT_NAME = "Smart Assistant - Core"
 
