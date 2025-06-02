@@ -6,7 +6,7 @@ from core.audio.tts_manager import TTSManager
 import os
 from core.utils.logger_config import get_logger
 
-logger = get_logger
+logger = get_logger(__name__)
 
 router = APIRouter()
 tts_manager = TTSManager()
@@ -25,9 +25,6 @@ class SpeakRequest(BaseModel):
 
 @router.post("/speak")
 async def speak(request: SpeakRequest, background_tasks: BackgroundTasks):
-    text = request.text
-    is_ssml = request.is_ssml
-
     try:
         mp3_path = tts_manager.synthesize(text=request.text, is_ssml=request.is_ssml)
         background_tasks.add_task(cleanup_file, mp3_path)

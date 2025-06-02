@@ -70,7 +70,7 @@ class PromptBuilder:
 {{
   "intent": "add_order",
   "item": {{ "name": "แกงเขียวหวานไก่", "qty": 1 }},
-  "response": "<speak><prosody rate='100%' pitch='+1st'>รับแกงเขียวหวานไก่ 1 ที่ค่ะ <break time='300ms'/> เพิ่มอะไรอีกไหมคะ?</prosody></speak>"
+  "response": "<speak><prosody rate='110%' pitch='+1st'>รับแกงเขียวหวานไก่ 1 ที่ค่ะ <break time='300ms'/> เพิ่มอะไรอีกไหมคะ?</prosody></speak>"
 }}
 
 หากไม่มีคำสั่งซื้อ ให้ตอบด้วย intent เช่น greeting, show_promotion, recommend_dish เป็นต้น
@@ -132,12 +132,12 @@ class PromptBuilder:
 ห้ามใส่ข้อความบรรยายอื่นนอก JSON
 ห้ามใช้เครื่องหมาย ``` หรือ ```json ครอบ JSON โดยเด็ดขาด
 
-ถ้าเป็นข้อความพูด ให้ใช้ SSML ครอบด้วย <speak><prosody rate="108%" pitch="+1st">...</prosody></speak>
+ถ้าเป็นข้อความพูด ให้ใช้ SSML ครอบด้วย <speak><prosody rate="110%" pitch="+1st">...</prosody></speak>
 และใช้ <break time="300ms"/> เพื่อเว้นจังหวะ
 
 ตัวอย่างที่ถูกต้อง:
 {{
   "intent": "greeting",
-  "response": "<speak><prosody rate='100%' pitch='+1st'>สวัสดีค่ะ</prosody></speak>"
+  "response": "<speak><prosody rate='110%' pitch='+1st'>สวัสดีค่ะ</prosody></speak>"
 }}
 """.strip()
