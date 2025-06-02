@@ -25,7 +25,8 @@ def test_voice_listener():
         last_active_time = time.time()
         while True:
             print("🎤 Listening for normal speech...")
-            full_text = listener.listen()
+            with listener.listening_lock :
+                full_text = listener.listen()
             if full_text:
                 print("🗣️ Recognized speech:", full_text)
                 last_active_time = time.time()

@@ -32,6 +32,7 @@ logger = get_logger(__name__)
 
 CHANNELS = 1
 FRAME_DURATION_MS = 30
+FRAME_LEN = int(SAMPLE_RATE * FRAME_DURATION_MS / 1000)  # = 480
 VAD_MODE = 2
 SILENCE_TIMEOUT_MS = 1000
 MAX_RECORD_SECONDS = 30
@@ -66,7 +67,7 @@ class VoiceListener:
     def calculate_volume_db(self,chunk):
             chunk = chunk.astype(np.float32)
             if AUDIO_DTYPE == 'int16':
-                chunk = chunk.astype(np.float32) / 32768.0  # normalize ก่อนคำนวณ
+                chunk = chunk.astype(np.float32)/ 32768.0  # normalize ก่อนคำนวณ
 
             rms = np.sqrt(np.mean(chunk ** 2)) + 1e-10
             return 20 * np.log10(rms)
@@ -78,7 +79,7 @@ class VoiceListener:
         def callback(indata, frames, time_info, status):
             samples.append(indata[:, 0].copy())
         
-        with sd.InputStream(samplerate=SAMPLE_RATE, channels=CHANNELS, callback=callback, dtype=AUDIO_DTYPE):
+        with sd.InputStream(samplerate=SAMPLE_RATE, channels=CHANNELS, callback=callback, dtype=AUDIO_DTYPE, blocksize=FRAME_LEN):
             sd.sleep(int(duration * 1000))
 
         all_audio = np.concatenate(samples)
@@ -99,6 +100,7 @@ class VoiceListener:
                 continue
 
             with self.listening_lock:
+
                 text = self.listen(skip_if_speaking=False, keywords_only=True, silence_timeout=300, post_padding_seconds=0.1)
                 logger.debug(f"in background listener: text={text}")
 
@@ -156,7 +158,6 @@ class VoiceListener:
             else:
                 audio_int16 = (audio_chunk * 32767).astype(np.int16)        
             volume_db = self.calculate_volume_db(audio_chunk)
-
             is_speech = False
             if len(audio_int16) >= frame_len:
                 frame = audio_int16[:frame_len]
@@ -165,6 +166,7 @@ class VoiceListener:
                 except Exception:
                     pass
 
+            #logger.debug(f"is_speech = {is_speech} : volume_db={volume_db}")
             if is_speech and volume_db > self.volume_threshold_db:
                 #logger.debug(f"🔊 Detected speech: {is_speech} | Volume: {volume_db:.2f} dB")
                 recording_started = True
@@ -187,7 +189,7 @@ class VoiceListener:
                 consecutive_voice_frames = max(consecutive_voice_frames - 1, 0)
 
         try:
-            with sd.InputStream(samplerate=SAMPLE_RATE, channels=CHANNELS, callback=callback, dtype=AUDIO_DTYPE):
+            with sd.InputStream(samplerate=SAMPLE_RATE, channels=CHANNELS, callback=callback, dtype=AUDIO_DTYPE, blocksize=FRAME_LEN):
                 logger.debug("🎧 InputStream opened — listening...")
                 start_time = time.time()
                 while not stop_event.is_set() and time.time() - start_time < MAX_RECORD_SECONDS:
@@ -210,7 +212,7 @@ class VoiceListener:
 
         audio_int16 = (audio_np * 32767).astype(np.int16)
 
-        # self.save_debug_audio(audio_np, SAMPLE_RATE)
+        #self.save_debug_audio(audio_np, SAMPLE_RATE)
 
         with io.BytesIO() as wav_io:
             wav.write(wav_io, SAMPLE_RATE, audio_int16)
