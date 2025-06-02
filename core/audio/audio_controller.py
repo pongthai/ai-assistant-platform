@@ -8,10 +8,12 @@ import requests
 import scipy.signal
 import time
 
-from core.config.config import TEMP_AUDIO_PATH, SAMPLE_RATE, AVATAR_SCALE, AVATAR_STATIC, AVATAR_ANIMATION, ENABLE_AVATAR_DISPLAY
+from core.config.config import TEMP_AUDIO_PATH, SAMPLE_RATE, AVATAR_SCALE, AVATAR_STATIC, AVATAR_ANIMATION, ENABLE_AVATAR_DISPLAY,TTS_SERVER_ENDPOINT
 from core.utils.logger_config import get_logger
 
 logger = get_logger(__name__)
+
+sd.default.device = (0, 0)
 
 class AudioController:
     def __init__(self, playback_handler=None):
@@ -75,7 +77,7 @@ class AudioController:
                 else:
                     logger.debug("🤖 No playback handler found, assuming audio is not playing")
 
-                with sd.OutputStream(device=None, samplerate=samplerate, channels=channels) as stream:
+                with sd.OutputStream(samplerate=samplerate, channels=channels) as stream:
                     blocksize = 1024
                     i = 0
                     while i < len(data):

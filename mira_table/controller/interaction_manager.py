@@ -81,11 +81,13 @@ class InteractionManager:
             return
 
         logger.info(f"response_json={response_json}")
+        reply_text = response_json.get("reply_text")
         intent = response_json.get("intent")
         tts_url = response_json.get("tts_url")
-
-        if tts_url:
-            play_tts(tts_url)
+        
+        if reply_text:
+            #play_tts(tts_url)
+            self.audio_controller.speak(reply_text,is_ssml=True)
 
         if intent == "greeting":
             self.state.set_state(State.LISTENING)

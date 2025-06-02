@@ -39,7 +39,7 @@ MAX_RECORD_SECONDS = 30
 MARGIN_DB = 10
 
 class VoiceListener:
-    def __init__(self, audio_controller, wake_word_event, stt_vendor='speech_recognition'):
+    def __init__(self, audio_controller, wake_word_event, stt_vendor='speech_recognition', enable_background_listener=False):
         logger.info("Initializing VoiceListener...")
         self.audio_controller = audio_controller
         self.recognizer = sr.Recognizer()
@@ -49,9 +49,11 @@ class VoiceListener:
         self.wake_word_event = wake_word_event
         self._stop_event = threading.Event()
         self.allowed_keywords = WAKE_WORDS + STOP_WORDS + EXIT_WORDS + CONFIRMATION_KEYWORDS + CANCEL_KEYWORDS
+        self.calibrate_ambient_noise()
         self.stt_vendor = stt_vendor
         self._listener_thread = threading.Thread(target=self._background_listener, daemon=True)
-        self._listener_thread.start()
+        if enable_background_listener:
+            self._listener_thread.start()
 
     def stop(self):
         self._stop_event.set()
@@ -92,8 +94,7 @@ class VoiceListener:
         logger.info(f"Ambient noise: {ambient_db:.1f} dB, threshold: {self.volume_threshold_db:.1f} dB")
 
     def _background_listener(self):
-        self.calibrate_ambient_noise()
-
+        
         while not self._stop_event.is_set():
             if not self.background_enabled:
                 time.sleep(0.2)
@@ -101,7 +102,7 @@ class VoiceListener:
 
             with self.listening_lock:
 
-                text = self.listen(skip_if_speaking=False, keywords_only=True, silence_timeout=300, post_padding_seconds=0.1)
+                text = self._listen(skip_if_speaking=False, keywords_only=True, silence_timeout=300, post_padding_seconds=0.1)
                 logger.debug(f"in background listener: text={text}")
 
             if not text:
@@ -131,7 +132,7 @@ class VoiceListener:
         except Exception as e:
             logger.error(f"❌ Failed to save debug audio: {e}")
 
-    def listen(self, skip_if_speaking=True, keywords_only=False, silence_timeout=SILENCE_TIMEOUT_MS, post_padding_seconds=0.3):
+    def _listen(self, skip_if_speaking=True, keywords_only=False, silence_timeout=SILENCE_TIMEOUT_MS, post_padding_seconds=0.3):
         if skip_if_speaking:
             while self.audio_controller.is_sound_playing:
                 time.sleep(0.1)
@@ -252,3 +253,7 @@ class VoiceListener:
             except Exception as e:
                 logger.exception(f"🛑 Unexpected recognition error: {e}")
                 return None
+
+    def listen(self, skip_if_speaking=True, keywords_only=False, silence_timeout=SILENCE_TIMEOUT_MS, post_padding_seconds=0.3):
+        with self.listening_lock:
+            return self._listen(skip_if_speaking=skip_if_speaking, keywords_only=keywords_only, silence_timeout=silence_timeout, post_padding_seconds=post_padding_seconds)

@@ -4,7 +4,8 @@
 INIT_GREETING = "สวัสดีค่ะ วันนี้มีอะไรให้ MIRA ช่วยบ้างตะ MIRA สามารถแนะนำเมนนูอร่อยๆให้ได้นะ"
 
 # Server endpoint
-SERVER_HOST = "http://localhost:8000/api/mira"
+SERVER_HOST = "http://192.168.100.101:8000/api/mira"
+TTS_SERVER_ENDPOINT = "http://192.168.100.101:8000/api/hana/speak"
 
 # Audio settings (if needed later)
 INPUT_DEVICE_INDEX = None  # หรือกำหนดเป็น index ของ mic เฉพาะ
