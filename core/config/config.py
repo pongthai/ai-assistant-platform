@@ -15,7 +15,7 @@ SERPER_API_KEY = os.getenv("SERPER_API_KEY", "")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 SYSTEM_TONE = os.getenv("SYSTEM_TONE", "family")
-TTS_SERVER_ENDPOINT = "http://192.168.100.101:8000/api/hana/speak"
+TTS_SERVER_ENDPOINT = "http://192.168.100.101:8000/api/shared/speak"
 
 # ✅ Static keywords
 WAKE_WORDS = ["ผิงผิง", "สวัสดีผิงผิง", "ทดสอบ"]
@@ -47,4 +47,5 @@ SAMPLE_RATE = 48000
 AUDIO_DTYPE="float32"
 AVATAR_STATIC = "pingping_static_v3.png"
 AVATAR_ANIMATION = "pingping_animation_v3.gif"
+PROCESSING_SOUND_FILE="./core/audio/processing_sound.mp3"
 SESSION_ID = os.getenv("SESSION_ID", "rasp-pi-001")

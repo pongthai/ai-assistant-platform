@@ -3,6 +3,7 @@ from mira_table.api.server_api import send_text_to_server, reset_session, play_t
 from core.audio.voice_listener import VoiceListener
 from core.audio.audio_controller import AudioController
 from mira_table.config import SESSION_ID
+from core.audio.processing_sound import ProcessingSound
 import core.audio.audio_config
 
 import time
@@ -22,11 +23,12 @@ class InteractionManager:
     def __init__(self, session_id=SESSION_ID):
         logger.debug("InteractionManager - Initialzied")
         self.session_id = session_id
-        self.state = StateManager()
+        self.state = StateManager()        
         #self.voice_listener = VADVoiceListener()
         wake_event = threading.Event()
         playback_handler = PlaybackHandler()
-        self.audio_controller = AudioController(playback_handler=playback_handler )       
+        self.audio_controller = AudioController(playback_handler=playback_handler )   
+        self.processing_sound = ProcessingSound(self.audio_controller)    
         self.voice_listener = VoiceListener(self.audio_controller,wake_event,stt_vendor="google_cloud")
         self.voice_listener.pause_background_listener()               
 
@@ -49,8 +51,10 @@ class InteractionManager:
                 logger.info("🎧 Listening for user input...")
                 user_text = self.voice_listener.listen()
                 logger.info(f"user_text={user_text}")
-                if user_text:
+                if user_text :
+                    self.processing_sound.start()
                     response = send_text_to_server(user_text, self.session_id)
+                    self.processing_sound.stop()
                     self.handle_response(response)
                 else:
                     logger.info("🤷 ไม่เข้าใจเสียงที่พูด ลองใหม่อีกครั้ง")
