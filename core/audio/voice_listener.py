@@ -151,7 +151,10 @@ class VoiceListener:
                 return
 
             audio_chunk = indata[:, 0].copy()
-            audio_int16 = (audio_chunk * 32767).astype(np.int16)
+            if AUDIO_DTYPE == 'int16':
+                audio_int16 = audio_chunk 
+            else:
+                audio_int16 = (audio_chunk * 32767).astype(np.int16)        
             volume_db = self.calculate_volume_db(audio_chunk)
 
             is_speech = False
