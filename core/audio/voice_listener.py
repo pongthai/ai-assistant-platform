@@ -196,6 +196,7 @@ class VoiceListener:
                 while not stop_event.is_set() and time.time() - start_time < MAX_RECORD_SECONDS:
                     sd.sleep(50)
         except sd.CallbackStop:
+            logger.debug("sd.CallbackStop Raised")
             pass
         except Exception as e:
             logger.error(f"❌ Error capturing input: {e}")
@@ -214,12 +215,12 @@ class VoiceListener:
         audio_int16 = (audio_np * 32767).astype(np.int16)
 
         #self.save_debug_audio(audio_np, SAMPLE_RATE)
-
+        #logger.info("Processing Speech Recognition")
         with io.BytesIO() as wav_io:
             wav.write(wav_io, SAMPLE_RATE, audio_int16)
             wav_io.seek(0)
             try:
-                logger.debug(f"[{threading.get_ident()}] : 🗣️ Recognizing...")
+                #logger.info(f"[{threading.get_ident()}] : 🗣️ Recognizing...")
                 if self.stt_vendor == "google_cloud":
                     client = google_speech.SpeechClient()
                     audio_bytes = wav_io.read()

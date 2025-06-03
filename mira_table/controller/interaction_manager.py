@@ -56,8 +56,8 @@ class InteractionManager:
                     response = send_text_to_server(user_text, self.session_id)
                     self.processing_sound.stop()
                     self.handle_response(response)
-                else:
-                    logger.info("🤷 ไม่เข้าใจเสียงที่พูด ลองใหม่อีกครั้ง")
+                # else:
+                #     logger.info("🤷 ไม่เข้าใจเสียงที่พูด ลองใหม่อีกครั้ง")
 
             elif current_state == State.CONFIRMING:
                 logger.info("📋 สรุปออเดอร์และยืนยัน")
@@ -85,9 +85,11 @@ class InteractionManager:
             return
 
         logger.info(f"response_json={response_json}")
-        reply_text = response_json.get("reply_text")
+        reply_text = response_json.get("response_ssml")
         intent = response_json.get("intent")
         tts_url = response_json.get("tts_url")
+        logger.info(f"intent = {intent}")
+        logger.info(f"reply_text = {reply_text}")
         
         if reply_text:
             #play_tts(tts_url)
@@ -115,7 +117,7 @@ class InteractionManager:
             self.state.set_state(State.LISTENING)
 
         elif intent == "confirm_order":
-            self.state.set_state(State.CONFIRMING)
+            self.state.set_state(State.LISTENING)
             
         elif intent == "payment_method":
             self.state.set_state(State.LISTENING)
@@ -124,6 +126,8 @@ class InteractionManager:
             self.state.set_state(State.LISTENING)
     
         elif intent == "recommend_dish":
+            self.state.set_state(State.LISTENING)
+        elif intent == "proactive_suggestion":
             self.state.set_state(State.LISTENING)
 
         elif intent == "thank_you":
