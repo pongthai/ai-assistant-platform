@@ -1,5 +1,6 @@
 import asyncio
 from server.mira.services.session_manager import session_manager
+from server.mira.services.prompt_builder import PromptBuilder
 from openai import OpenAI
 from server.config.config import OPENAI_API_KEY, OPENAI_MODEL
 from core.utils.logger_config import get_logger
@@ -10,14 +11,24 @@ client = OpenAI(api_key=OPENAI_API_KEY)
 
 async def ask_gpt(session_id: str, user_message: str) -> str:
     session_manager.add_user_message(session_id, user_message)
-    messages = await session_manager.get_full_context(session_id)
-    
-    logger.debug(f"messages = {messages}")
+    prompt_builder = PromptBuilder()
+    order_list = session_manager.get_order_list(session_id)
+    logger.debug(f"ORDER_LIST = {order_list}")
+    user_prompt = prompt_builder.build_user_prompt(user_message, order_list)
+    messages = await session_manager.get_full_context(session_id, max_history=5)
+
         # Convert messages to structured format for gpt-4o / gpt-4o-mini
     for msg in messages:
         if isinstance(msg.get("content"), str):
             msg["content"] = [{"type": "text", "text": msg["content"]}]
+
+    messages.append({
+        "role": "user",
+        "content": [{"type": "text", "text": user_prompt}]
+    })
     logger.debug(f"Total context messages: {len(messages)}")
+    logger.debug(f"User prompt: {user_prompt}")
+    logger.debug(f"Messages to be sent: {messages}")
 
     response = client.chat.completions.create(
         model=OPENAI_MODEL,

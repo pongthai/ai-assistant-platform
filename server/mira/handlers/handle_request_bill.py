@@ -1,20 +1,16 @@
-# Author: <NAME>
-# Date: 2021-08-14
-# Description: Handle request for bill
-# ./handlers/handle_request_bill.py
 
-from fastapi.responses import JSONResponse
-from server.mira.services.session_manager import SessionManager
+from core.utils.logger_config import get_logger
+from server.mira.models.response import AssistantResponse
 
-session_manager = SessionManager()
+logger = get_logger(__name__)
 
-async def handle_request_bill(session_id: str):
-    if not session_manager.has_session(session_id):
-        return JSONResponse({"error": "Session not found"}, status_code=404)
+async def handle_request_bill(payload: dict, session_id: str) -> AssistantResponse:
+    logger.info(f"[{session_id}] Handle Request Bill")
+    """
+    Handle request_bill.
+    """
+    return AssistantResponse(
+        intent="request_bill"
 
-    reply_ssml = "<speak><prosody rate='108%' pitch='+1st'>รับทราบค่ะ กำลังแจ้งพนักงานให้นำบิลมาให้นะคะ <break time='300ms'/> กรุณารอสักครู่ค่ะ</prosody></speak>"
-
-    return {
-        "intent": "request_bill",
-        "response": reply_ssml
-    }
+    )
+ 

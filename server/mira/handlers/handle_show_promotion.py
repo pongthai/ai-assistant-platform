@@ -1,19 +1,15 @@
-import json
-import os
+from core.utils.logger_config import get_logger
+from server.mira.models.response import AssistantResponse
 
-DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "promotions.json")
-with open(os.path.abspath(DATA_PATH), "r", encoding="utf-8") as f:
-    PROMOTIONS = json.load(f)
+logger = get_logger(__name__)
 
-def handle_show_promotion(session_id: str, gpt_response: dict) -> dict:
-    if not PROMOTIONS:
-        reply_ssml = "<speak><prosody rate='108%' pitch='+1st'>ขออภัยค่ะ ขณะนี้ยังไม่มีโปรโมชั่น</prosody></speak>"
-    else:
-        promo_lines = [f"<break time='300ms'/>• {p['title']}" for p in PROMOTIONS]
-        promo_text = " ".join(promo_lines)
-        reply_ssml = f"<speak><prosody rate='108%' pitch='+1st'>ตอนนี้เรามีโปรโมชั่นดังนี้ค่ะ {promo_text}</prosody></speak>"
+async def handle_show_promotion(payload: dict, session_id: str) -> AssistantResponse:
+    logger.info(f"[{session_id}] Handle Show Promotion")
+    """
+    Handle show promotion.
+    """
+    return AssistantResponse(
+        intent="show_promotion"
 
-    return {
-        "reply_text": reply_ssml,
-        "intent": "show_promotion"
-    }
+    )
+ 

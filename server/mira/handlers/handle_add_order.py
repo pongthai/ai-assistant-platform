@@ -1,20 +1,20 @@
-
-
-import logging
 from server.mira.services.session_manager import session_manager
 from server.mira.models.order import OrderItem
 from server.mira.services.menu import lookup_price, validate_item
+from server.mira.models.response import AssistantResponse
+from core.utils.logger_config import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
-def handle_add_order(payload: dict, session_id: str) -> dict:
+def handle_add_order(payload: dict, session_id: str) -> AssistantResponse:
+    logger.info(f"[{session_id}] Handle Add Order")
     item_data = payload.get("item")
     if not item_data:
         logger.warning("No item data found in payload")
-        return {
-            "error": "Invalid order request",
-            "response": "<speak>ขออภัยค่ะ ไม่พบรายการอาหารที่คุณต้องการสั่ง</speak>"
-        }
+        return AssistantResponse(
+            intent="add_order",
+            response_ssml="<speak>ขออภัยค่ะ ไม่พบรายการอาหารที่คุณต้องการสั่ง</speak>"
+        )
 
     if isinstance(item_data, dict):
         item_data = [item_data]
@@ -40,13 +40,12 @@ def handle_add_order(payload: dict, session_id: str) -> dict:
         logger.info(f"✅ Order added: {order_item}")
 
     if not added_items:
-        return {
-            "error": "No valid items added",
-            "response": "<speak>ยังไม่มีรายการที่สามารถเพิ่มได้ค่ะ</speak>"
-        }
+        return AssistantResponse(
+            intent="add_order",
+            response_ssml="<speak>ยังไม่มีรายการที่สามารถเพิ่มได้ค่ะ</speak>"
+        )
 
     item_names = " และ ".join([f"{item.qty} {item.name}" for item in added_items])
-    return {
-        "intent": "add_order",
-        "response": f"<speak>รับ {item_names} แล้วค่ะ</speak>"
-    }
+    return AssistantResponse(
+        intent="add_order"
+    )

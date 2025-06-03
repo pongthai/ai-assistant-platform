@@ -3,6 +3,7 @@ import json
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse, FileResponse
 from server.mira.models.user_input import AskRequest, ResetSessionRequest
+from server.mira.models.response import AssistantResponse
 from server.mira.services.session_manager import session_manager
 from server.mira.services.prompt_builder import PromptBuilder
 from server.mira.services.gpt_client import ask_gpt  # now async
@@ -29,7 +30,7 @@ def safe_parse_json(text: str) -> Optional[dict]:
     except Exception:
         return None    
 
-@router.post("/ask")
+@router.post("/ask", response_model=AssistantResponse)
 async def ask_user(req: AskRequest):
     logger.debug(f"Received user input[{req.session_id}]: {req.user_input} ")
     session_id = req.session_id
@@ -44,32 +45,30 @@ async def ask_user(req: AskRequest):
         session_manager.init_session(session_id, system_prompt=init_prompt)
 
     reply_text = await ask_gpt(session_id, user_input)
-    logger.debug(f"User input: {user_input}, Reply: {reply_text}")
+    logger.debug(f"ask_gpt Reply: {reply_text}")
 
     try:
         gpt_result = safe_parse_json(reply_text)
-        reply_ssml = gpt_result.get("response", reply_text)
-        logger.debug(f"GPT reply SSML: {reply_ssml}")
-        intent = gpt_result.get("intent", "unknown")
+        handler_result = None
+        intent = gpt_result.get("intent", "unknown") if gpt_result else "unknown"
+        reply_ssml = gpt_result.get("response", reply_text) if gpt_result else reply_text
+
+        handler_result = await route_intent(intent, gpt_result or {}, session_id)
+        logger.debug(f"Handler result: {handler_result}")
+
+        if isinstance(handler_result, AssistantResponse):
+            reply_ssml = handler_result.response_ssml or reply_ssml
+            intent = handler_result.intent
     except Exception as e:
         intent = "unknown"
         reply_ssml = reply_text
         result = {"note": "⚠️ GPT reply is not JSON", "error": str(e)}
         logger.error(f"Error processing GPT reply: {result}")
 
-    #tts_path = tts_manager.synthesize(response)
-
-    # tts_id = str(uuid.uuid4())
-    # tts_path = os.path.join(TTS_PATH, f"{tts_id}.mp3")
-    # generate_tts(reply_ssml, tts_path)
-    # TEMP_TTS_STORE[tts_id] = tts_path
-    # logger.info(f"Generated TTS file: {tts_path}")
-
-    return JSONResponse({
-        "reply_text": reply_ssml,
-        #"tts_url": f"/speak/{tts_id}",        
-        "intent": intent
-    })
+    return AssistantResponse(
+        intent=intent,
+        response_ssml=reply_ssml
+    )
 
 @router.get("/speak/{tts_id}")
 async def speak(tts_id: str):

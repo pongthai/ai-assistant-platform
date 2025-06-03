@@ -1,10 +1,17 @@
 
 
-from server.mira.services.menu import MENU_DATA
-from server.mira.models.response import create_response
+from core.utils.logger_config import get_logger
+from server.mira.models.response import AssistantResponse
 
-def handle_show_menu(session_id: str, params: dict) -> dict:
-    menu_names = [item["name"] for item in MENU_DATA]
-    menu_text = " ".join(menu_names)
-    response_text = f"<speak><prosody rate='108%' pitch='+1st'>เมนูของเราวันนี้ได้แก่ <break time='300ms'/> {menu_text}</prosody></speak>"
-    return create_response(intent="show_menu", response=response_text)
+logger = get_logger(__name__)
+
+async def handle_show_menu(payload: dict, session_id: str) -> AssistantResponse:
+    logger.info(f"[{session_id}] Handle Show Menu")
+    """
+    Handle Show Menu.
+    """
+    return AssistantResponse(
+        intent="show_menu"
+
+    )
+ 

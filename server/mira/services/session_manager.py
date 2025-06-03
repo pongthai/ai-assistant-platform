@@ -1,10 +1,14 @@
 import asyncio
 from collections import defaultdict
 from core.utils.logger_config import get_logger
+from server.mira.models.order import OrderStatus
+
 
 logger = get_logger(__name__)
 
 class SessionManager:
+    MAX_HISTORY_COUNT = 5
+    MAX_HISTORY_CHARACTERS = 3000
     def __init__(self):
         self.sessions = {}
         self.session_locks = defaultdict(asyncio.Lock)
@@ -34,6 +38,9 @@ class SessionManager:
 
     def add_user_message(self, session_id, message):
         logger.debug(f"[{session_id}] 👤 User: {message}")
+    
+        if session_id not in self.sessions:
+            self.sessions[session_id] = {"history": []}  # หรือ preload ค่าอื่นๆ ถ้าต้องใช้
         self.sessions[session_id]["history"].append({"role": "user", "content": message})
         self.sessions[session_id]["fresh"] = False
 
@@ -60,10 +67,19 @@ class SessionManager:
         self.sessions[session_id]["orders"] = []
         self.sessions[session_id]["fresh"] = False
 
-    def update_order_status(self, session_id, item_name, new_status):
-        for item in self.sessions[session_id]["orders"]:
-            if getattr(item, "name", None) == item_name:
-                item.status = new_status
+    def remove_order_item(self, session_id, item_name):
+        if session_id in self.sessions:
+            for order in self.sessions[session_id]["orders"]:
+                if getattr(order, "name", None) == item_name:
+                    order.status = OrderStatus.canceled
+            self.sessions[session_id]["fresh"] = False
+
+    def update_order_item(self, session_id, item):
+        for order in self.sessions[session_id]["orders"]:
+            if  getattr(order, "name", None) == getattr(item, "name", None):
+                order.status = item.status
+                order.qty = item.qty
+                order.price = item.price           
                 self.sessions[session_id]["fresh"] = False
 
     def get_order_summary(self, session_id):
@@ -104,7 +120,7 @@ class SessionManager:
         async with self.session_locks[session_id]:
             history = self.sessions.get(session_id, {}).get("history", [])
             total_characters = sum(len(msg["content"]) for msg in history if msg["role"] != "system")
-            if len(history) > 10 or total_characters > 3000:
+            if len(history) > self.MAX_HISTORY_COUNT or total_characters > self.MAX_HISTORY_CHARACTERS:
                 summary_text = await self._summarize_history(session_id, history)
                 self.sessions[session_id]["summary_text"] = summary_text
                 self.sessions[session_id]["history"] = []
@@ -136,14 +152,17 @@ class SessionManager:
     def get_summary_text(self, session_id):
         return self.sessions.get(session_id, {}).get("summary_text", "")
     
-    async def get_full_context(self, session_id):
+    async def get_full_context(self, session_id, max_history: int = None):
         async with self.session_locks[session_id]:
             context = []
             if self.sessions[session_id].get("system_prompt"):
                 context.append({"role": "system", "content": self.sessions[session_id]["system_prompt"]})
             if self.sessions[session_id].get("summary_text"):
                 context.append({"role": "system", "content": self.sessions[session_id]["summary_text"]})
-            context += self.sessions[session_id].get("history", []).copy()
+            history = self.sessions[session_id].get("history", []).copy()
+            if max_history is not None:
+                history = history[-max_history:]
+            context += history
             return context
 
     # Create a singleton instance for import

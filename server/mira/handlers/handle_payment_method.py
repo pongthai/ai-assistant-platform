@@ -1,18 +1,14 @@
+from core.utils.logger_config import get_logger
+from server.mira.models.response import AssistantResponse
 
+logger = get_logger(__name__)
 
-from fastapi.responses import JSONResponse
-
-def handle_payment_method(session_manager, session_id: str, gpt_result: dict):
-    # Extract method or ask user to choose
-    payment_method = gpt_result.get("payment_method")
-
-    if payment_method:
-        reply = f"<speak><prosody rate='108%' pitch='+1st'>รับทราบค่ะ คุณเลือกชำระเงินด้วย {payment_method}</prosody></speak>"
-    else:
-        reply = (
-            "<speak><prosody rate='108%' pitch='+1st'>คุณต้องการชำระเงินด้วยวิธีใดคะ "
-            "<break time='300ms'/> เงินสด หรือพร้อมเพย์ หรือคิวอาร์โค้ดคะ</prosody></speak>"
-        )
-
-    session_manager.add_assistant_reply(session_id, reply)
-    return JSONResponse(content={"reply_text": reply, "intent": "payment_method"})
+async def handle_payment_method(payload: dict, session_id: str) -> AssistantResponse:
+    """
+    Handle payment method intent.
+    """
+    logger.info(f"[{session_id}] Handling payment method intent")
+    logger.debug(f"[{session_id}] Payment method payload: {payload}")
+    return AssistantResponse(
+        intent="payment_method"
+    )

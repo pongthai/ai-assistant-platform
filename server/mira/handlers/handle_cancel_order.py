@@ -1,34 +1,31 @@
-
-
+from server.mira.models.order import OrderStatus, OrderItem
 from server.mira.services.session_manager import session_manager
 from fastapi.responses import JSONResponse
 from core.utils.logger_config import get_logger
+from server.mira.models.response import AssistantResponse
 
 logger = get_logger(__name__)
 
-async def handle_cancel_order(session_id: str):
+async def handle_cancel_order(payload: dict, session_id: str) -> AssistantResponse:
+    logger.info(f"[{session_id}] Handle Cancel Order")
+
     if not session_manager.has_session(session_id):
         logger.warning(f"Session not found: {session_id}")
-        return JSONResponse({"error": "Session not found"}, status_code=404)
+        return AssistantResponse(
+            intent="cancel_order",
+            response_ssml="<speak><prosody rate=\"108%\" pitch=\"+1st\">ไม่พบข้อมูลออเดอร์ในเซสชันค่ะ</prosody></speak>"
+        )
 
-    # Cancel all "new" orders
     order_list = session_manager.get_order_list(session_id)
-    canceled_items = []
+    if not order_list:
+        return AssistantResponse(
+            intent="cancel_order",
+            response_ssml="<speak><prosody rate='108%' pitch='+1st'>ไม่พบรายการที่สามารถยกเลิกได้ค่ะ</prosody></speak>"
+        )
 
-    for item in order_list:
-        if item.status == "new":
-            item.status = "canceled"
-            canceled_items.append(item.name)
+    session_manager.clear_orders(session_id)
+    logger.info(f"Cleared all orders for session {session_id}")
 
-    if not canceled_items:
-        logger.info(f"No active 'new' items to cancel for session {session_id}")
-        return JSONResponse({
-            "intent": "cancel_order",
-            "response": "<speak><prosody rate=\"108%\" pitch=\"+1st\">ยังไม่มีรายการที่ยกเลิกได้ค่ะ</prosody></speak>"
-        })
-
-    logger.info(f"Canceled items for session {session_id}: {canceled_items}")
-    return JSONResponse({
-        "intent": "cancel_order",
-        "response": f"<speak><prosody rate=\"108%\" pitch=\"+1st\">ยกเลิกรายการ {' และ '.join(canceled_items)} ให้แล้วค่ะ</prosody></speak>"
-    })
+    return AssistantResponse(
+        intent="cancel_order"
+    )

@@ -1,5 +1,7 @@
 from pathlib import Path
 import json
+from server.mira.models.order import OrderStatus
+
 from core.utils.logger_config import get_logger
 logger = get_logger(__name__)
 
@@ -43,8 +45,8 @@ class PromptBuilder:
 รายการ intent ที่ระบบรองรับ:
 - greeting: ทักทายลูกค้า
 - add_order: เพิ่มเมนูเข้าออเดอร์ใหม่
-- cancel_order: ยกเลิกรายการอาหาร
-- modify_order: แก้ไขเมนูหรือจำนวน
+- cancel_order: ยกเลิกรายการอาหารทั้งหมดที่ยังไม่ได้ดำเนินการ
+- modify_order: แก้ไขจำนวนของเมนูที่สั่ง เช่น เพิ่มหรือลดจำนวน หรือยกเลิกรายการบางเมนูโดยตั้งจำนวนเป็นค่าติดลบ
 - show_menu: ขอรายการเมนูทั้งหมด
 - show_promotion: ขอทราบโปรโมชั่น
 - recommend_dish: ขอคำแนะนำเมนู
@@ -84,7 +86,7 @@ class PromptBuilder:
             return ""
         suggested = []
         for item in order_list:
-            item_id = item.get("id")
+            item_id = getattr(item, "id", None)
             if not item_id:
                 continue
             recs = self.recommendations.get("based_on_order", {}).get(item_id, [])
@@ -94,38 +96,32 @@ class PromptBuilder:
             return "\n\nเมนูแนะนำเพิ่มเติมจากรายการที่สั่ง:\n" + "\n".join(suggested)
         return ""
 
+    @staticmethod
+    def aggregate_order(order_list):
+        from collections import defaultdict
+        counter = defaultdict(int)
+        for item in order_list:
+            logger.debug(f"aggregate_order : order=[{getattr(item, 'name', None)},  {getattr(item, 'qty', 1)}, {getattr(item, 'status', None)}] ")
+            if getattr(item, "status", None) == OrderStatus.canceled:
+                continue
+            name = getattr(item, "name", None)
+            qty = getattr(item, "qty", 1)
+            counter[name] += qty
+        return [f"- {name} x {qty}" for name, qty in counter.items()]
+
     def build_user_prompt(self, user_input, order_list=None):
         logger.debug("enter build_user_prompt")
-        intent_list = """
-        - greeting
-        - add_order
-        - cancel_order
-        - modify_order
-        - show_menu
-        - show_promotion
-        - recommend_dish
-        - suggest_combo
-        - confirm_order
-        - call_staff
-        - request_bill
-        - payment_method
-        - open_topic
-        - proactive_suggestion
-        - unknown
-        """.strip()
 
         order_text = ""
         if order_list:
-            order_text = "\n\nรายการที่ลูกค้าสั่งแล้ว:\n" + "\n".join(
-                [f"- {item['name']} x {item.get('qty', 1)}" for item in order_list]
-            )
+            aggregated = self.aggregate_order(order_list)
+            order_text = "\n\nรายการที่ลูกค้าสั่งแล้ว:\n" + "\n".join(aggregated)
         recommendation_text = self._get_recommendations_from_order(order_list)
 
         return f"""
 ผู้ใช้: {user_input}
 
-โปรดตอบกลับด้วย intent ที่เหมาะสมในรูปแบบ JSON เท่านั้น โดย intent ต้องอยู่ในรายการด้านล่างนี้ ห้ามตั้งชื่อ intent ใหม่โดยเด็ดขาด:
-{intent_list}
+โปรดตอบกลับด้วย intent ที่เหมาะสมในรูปแบบ JSON เท่านั้น โดย intent ต้องอยู่ในรายการที่ระบบกำหนดไว้ (ตามที่แจ้งใน system prompt) ห้ามตั้งชื่อ intent ใหม่โดยเด็ดขาด
 {order_text}
 {recommendation_text}
 

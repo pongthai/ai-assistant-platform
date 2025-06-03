@@ -1,19 +1,23 @@
-from server.mira.services.session_manager import SessionManager
+from server.mira.services.session_manager import session_manager
 from server.mira.models.response import AssistantResponse
+from server.mira.models.order import OrderStatus
+from core.utils.logger_config import get_logger
+logger = get_logger(__name__)
+ 
+def handle_confirm_order(payload: dict, session_id: str) -> AssistantResponse:
+    logger.info(f"[{session_id}] Handle Confirm Order")
 
-session_manager = SessionManager()
-
-def handle_confirm_order(session_id: str) -> AssistantResponse:
     order_list = session_manager.get_order_list(session_id)
     if not order_list:
         return AssistantResponse(
             intent="confirm_order",
             response_ssml="<speak><prosody rate='108%' pitch='+1st'>คุณยังไม่มีรายการในออเดอร์ค่ะ</prosody></speak>"
         )
-
-    session_manager.mark_order_confirmed(session_id)
+    
+    for order_item in order_list:
+        if order_item.status == OrderStatus.new:
+            order_item.status = OrderStatus.in_progress
 
     return AssistantResponse(
-        intent="confirm_order",
-        response_ssml="<speak><prosody rate='108%' pitch='+1st'>ยืนยันรายการเรียบร้อยแล้วค่ะ กำลังส่งคำสั่งไปยังครัวนะคะ</prosody></speak>"
+        intent="confirm_order"
     )
