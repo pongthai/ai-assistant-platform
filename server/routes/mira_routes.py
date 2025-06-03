@@ -35,14 +35,6 @@ async def ask_user(req: AskRequest):
     logger.debug(f"Received user input[{req.session_id}]: {req.user_input} ")
     session_id = req.session_id
     user_input = req.user_input.strip()
-    res = session_manager.is_fresh(session_id)
-    logger.debug(f"Session Fresh: {res}")
-
-    # Initialize session if needed
-    if session_manager.is_fresh(session_id):
-        prompt_builder = PromptBuilder()
-        init_prompt = prompt_builder.build_init_prompt()
-        session_manager.init_session(session_id, system_prompt=init_prompt)
 
     reply_text = await ask_gpt(session_id, user_input)
     logger.debug(f"ask_gpt Reply: {reply_text}")

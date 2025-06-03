@@ -76,5 +76,185 @@
     "name": "ไอศกรีมวานิลลา",
     "category": "dessert",
     "price": 40
+  },
+  {
+    "id": "M006",
+    "name": "แกงมัสมั่นไก่",
+    "category": "main",
+    "price": 90
+  },
+  {
+    "id": "M007",
+    "name": "ข้าวไข่เจียวหมูสับ",
+    "category": "main",
+    "price": 50
+  },
+  {
+    "id": "M008",
+    "name": "ข้าวหมูแดง",
+    "category": "main",
+    "price": 70
+  },
+  {
+    "id": "M009",
+    "name": "ก๋วยเตี๋ยวเรือ",
+    "category": "main",
+    "price": 60
+  },
+  {
+    "id": "M010",
+    "name": "ข้าวมันไก่",
+    "category": "main",
+    "price": 65
+  },
+  {
+    "id": "M011",
+    "name": "ข้าวซอยไก่",
+    "category": "main",
+    "price": 80
+  },
+  {
+    "id": "M012",
+    "name": "ผัดกะเพราหมูกรอบ",
+    "category": "main",
+    "price": 75
+  },
+  {
+    "id": "M013",
+    "name": "ราดหน้าเส้นใหญ่",
+    "category": "main",
+    "price": 70
+  },
+  {
+    "id": "M014",
+    "name": "ข้าวผัดปู",
+    "category": "main",
+    "price": 85
+  },
+  {
+    "id": "M015",
+    "name": "ปลาทอดน้ำปลา",
+    "category": "main",
+    "price": 120
+  },
+  {
+    "id": "S005",
+    "name": "เครปเค้กสตรอว์เบอร์รี่",
+    "category": "dessert",
+    "price": 60
+  },
+  {
+    "id": "S006",
+    "name": "โรตีกรอบ",
+    "category": "dessert",
+    "price": 35
+  },
+  {
+    "id": "S007",
+    "name": "บัวลอยไข่หวาน",
+    "category": "dessert",
+    "price": 45
+  },
+  {
+    "id": "S008",
+    "name": "ลอดช่องน้ำกะทิ",
+    "category": "dessert",
+    "price": 30
+  },
+  {
+    "id": "S009",
+    "name": "กล้วยบวชชี",
+    "category": "dessert",
+    "price": 35
+  },
+  {
+    "id": "S010",
+    "name": "ขนมถ้วย",
+    "category": "dessert",
+    "price": 25
+  },
+  {
+    "id": "S011",
+    "name": "ซาหริ่ม",
+    "category": "dessert",
+    "price": 30
+  },
+  {
+    "id": "S012",
+    "name": "เฉาก๊วยนมสด",
+    "category": "dessert",
+    "price": 35
+  },
+  {
+    "id": "S013",
+    "name": "ข้าวเหนียวทุเรียน",
+    "category": "dessert",
+    "price": 55
+  },
+  {
+    "id": "S014",
+    "name": "ฮันนี่โทสต์",
+    "category": "dessert",
+    "price": 90
+  },
+  {
+    "id": "P001",
+    "name": "โปรชุดข้าวผัดกุ้ง + โค้กกระป๋อง",
+    "category": "promotion",
+    "price": 90
+  },
+  {
+    "id": "P002",
+    "name": "โปรข้าวมันไก่ + น้ำแตงโมปั่น",
+    "category": "promotion",
+    "price": 95
+  },
+  {
+    "id": "P003",
+    "name": "โปรเค้กช็อกโกแลต + ชาเย็น",
+    "category": "promotion",
+    "price": 70
+  },
+  {
+    "id": "P004",
+    "name": "โปรบิงซูมะม่วง + น้ำเปล่า",
+    "category": "promotion",
+    "price": 100
+  },
+  {
+    "id": "P005",
+    "name": "โปรขนมจีนแกงเขียวหวาน + น้ำแตงโมปั่น",
+    "category": "promotion",
+    "price": 115
+  },
+  {
+    "id": "D005",
+    "name": "กาแฟเย็น",
+    "category": "drink",
+    "price": 40
+  },
+  {
+    "id": "D006",
+    "name": "ชาเขียวนมสด",
+    "category": "drink",
+    "price": 45
+  },
+  {
+    "id": "D007",
+    "name": "นมชมพูเย็น",
+    "category": "drink",
+    "price": 35
+  },
+  {
+    "id": "D008",
+    "name": "ชามะนาว",
+    "category": "drink",
+    "price": 30
+  },
+  {
+    "id": "D009",
+    "name": "อัญชันมะนาว",
+    "category": "drink",
+    "price": 30
   }
 ]

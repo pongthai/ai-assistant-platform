@@ -13,6 +13,5 @@ async def handle_call_staff(payload: dict, session_id: str):
         )
 
     return AssistantResponse(
-        intent="call_staff",
-        response_ssml="<speak><prosody rate='108%' pitch='+1st'>เดี๋ยวจะมีพนักงานไปที่โต๊ะของคุณในไม่ช้านะคะ<break time='300ms'/> กรุณารอสักครู่ค่ะ</prosody></speak>"
+        intent="call_staff"
     )

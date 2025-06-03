@@ -15,4 +15,21 @@
       "discount": 5
     }
   }
+  ,
+  {
+    "id": "P003",
+    "description": "สั่งของหวานพร้อมเครื่องดื่ม รับส่วนลด 8 บาท",
+    "condition": {
+      "required_categories": ["dessert", "drink"],
+      "discount": 8
+    }
+  },
+  {
+    "id": "P004",
+    "description": "โปรสุดคุ้ม! สั่งครบ 3 รายการ ลดทันที 15 บาท",
+    "condition": {
+      "min_items": 3,
+      "discount": 15
+    }
+  }
 ]
