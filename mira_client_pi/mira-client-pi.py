@@ -14,6 +14,9 @@ from google.cloud import speech
 from gtts import gTTS
 from mira_table.controller.interaction_manager import InteractionManager
 import os
+from core.utils.logger_config import get_logger
+
+logger = get_logger(__name__)
 
 
 MIRA_SERVER_URL = os.getenv("MIRA_SERVER_URL")
@@ -39,39 +42,61 @@ class AudioStream:
 class SpeechWorker(QObject):
     update_text = pyqtSignal(str)
     update_result = pyqtSignal(dict)
-    update_orders = pyqtSignal(list)
+    update_orders = pyqtSignal(dict)
     set_avatar_talking = pyqtSignal()
     set_avatar_idle = pyqtSignal()
+    reply_ready = pyqtSignal(dict)
+
+    def handle_reply_ready(self, data: dict):
+        logger.info(f"Enter handle_reply_ready = data={data}")
+        self.reply_ready.emit(data)
+        if "orders" in data:
+            self.update_orders.emit({
+                "orders": data.get("orders", []),
+                "total_price": data.get("total_price"),
+                "discount": data.get("discount")
+            })
+
+    def handle_avatar_talk(self, is_talking: bool):
+        if is_talking:
+            self.set_avatar_talking.emit()
+        else:
+            self.set_avatar_idle.emit()
+
+    def __init__(self):
+        super().__init__()
+        self.interaction_manager = InteractionManager(
+            result_callback=self.handle_reply_ready,
+            on_avatar_talk=self.handle_avatar_talk
+        )    
 
     def run(self):
-        self.update_text.emit("Listening...")
-        audio_stream = AudioStream()
-        audio_stream.start()
-        try:
-            text = recognize_speech()
-            audio_stream.stop()
-            self.update_text.emit(f"You said: {text}")
-            self.set_avatar_talking.emit()
-            result = ask_mira_server(text)
-            speak(result['reply'])
-            self.update_result.emit(result)
-            orders = fetch_orders()
-            self.update_orders.emit(orders)
-        except Exception as e:
-            print("Error:", e)
-        finally:
-            self.set_avatar_idle.emit()
+        def background_run():
+            try:
+                self.interaction_manager.run()
+            except Exception as e:
+                print("InteractionManager error:", e)
+
+        thread = threading.Thread(target=background_run, daemon=True)
+        thread.start()
 
 # === UI ===
 class MiraUI(QWidget):
+    
     def __init__(self):
         super().__init__()
+        self.avatar_scale = 0.80  # Default scale factor for avatar
         self.setWindowTitle("MIRA Client")
         self.setGeometry(100, 100, 1024, 600)
 
         self.order_list = QListWidget()
         self.avatar_label = QLabel()
-        self.avatar_movie = QMovie("pingping_static_v3.png")
+        self.avatar_movie = QMovie("./mira_client_pi/assets/pingping_static_v3.png")
+        if not self.avatar_movie.isValid():
+            print("❌ QMovie failed to load GIF")
+        # self.avatar_movie.setScaledSize(
+        #     self.avatar_movie.currentPixmap().size() * self.avatar_scale
+        # )
         self.avatar_label.setMovie(self.avatar_movie)
         self.avatar_movie.start()
 
@@ -97,27 +122,80 @@ class MiraUI(QWidget):
         self.worker.update_orders.connect(self.update_order_list)
         self.worker.set_avatar_talking.connect(self.play_avatar_talking)
         self.worker.set_avatar_idle.connect(self.play_avatar_idle)
+        self.worker.reply_ready.connect(self.handle_reply_ready)
 
         self.thread.started.connect(self.worker.run)
         self.thread.start()
 
-    def update_order_list(self, orders):
+    def update_order_list(self, order_data):
         self.order_list.clear()
-        for item in orders:
-            self.order_list.addItem(f"{item['qty']} x {item['name']} [{item['status']}]")
+        logger.info("Enter update_order_list")
+        if isinstance(order_data, list):
+            orders = order_data
+            total_price = None
+            discount = None
+        else:
+            orders = order_data.get("orders", [])
+            total_price = order_data.get("total_price")
+            discount = order_data.get("discount")
+
+        self.order_list.addItem("#### Order List ####")
+        i = 0
+        for item in orders:            
+            i += 1
+            self.order_list.addItem(f"{i}. {item['name']} ({item['price']})        x {item['qty']} [{item['status']}]")
+        logger.info(f"total_price: {total_price}, discount: {discount}")
+        if total_price is not None or discount is not None:
+            current_text = self.menu_info.toPlainText()
+            discount_info = ""
+            total_price_info = ""
+            if discount is not None:
+                discount_info = f"\n💸 ส่วนลด: {discount} บาท"
+                self.order_list.addItem(discount_info)
+            if total_price is not None:
+                total_price_info = f"\n💰 ราคารวมสุทธิ: {total_price} บาท"
+                self.order_list.addItem(total_price_info)            
+            
+            self.menu_info.setText(f"{current_text}{discount_info}")
 
     def update_menu_info(self, name, desc):
         self.menu_info.setHtml(f"<h2>{name}</h2><p>{desc}</p>")
 
     def play_avatar_talking(self):
         self.avatar_movie.stop()
-        self.avatar_movie.setFileName("./mira/resources/avatar_pingping_v3.gif")
+        self.avatar_movie.setFileName("./mira_client_pi/assets/avatar_pingping_v3.gif")
+        self.avatar_movie.setScaledSize(
+            self.avatar_movie.currentPixmap().size() * self.avatar_scale
+        )
+        self.avatar_scale = 1
         self.avatar_movie.start()
 
     def play_avatar_idle(self):
         self.avatar_movie.stop()
-        self.avatar_movie.setFileName("avatar_idle.gif")
+        self.avatar_movie.setFileName("./mira_client_pi/assets/pingping_static_v3.png")
+        self.avatar_movie.setScaledSize(
+            self.avatar_movie.currentPixmap().size() * self.avatar_scale
+        )
+        self.avatar_scale = 1
         self.avatar_movie.start()
+
+    def handle_reply_ready(self, data):
+        
+        user_text = data.get("user_text", "")
+        response_ssml = data.get("response_ssml", "")
+        self.menu_info.setText(f"🧑‍💬: {user_text}\n🤖: {response_ssml}")
+        # if "orders" in data:
+        #     self.update_order_list(data["orders"])
+        
+        # if "total_price" in data or "discount" in data:
+        #     current_text = self.menu_info.toPlainText()
+        #     discount_info = ""
+        #     if "discount" in data:
+        #         discount_info = f"\n💸 ส่วนลด: {data['discount']} บาท"
+        #     if "total_price" in data:
+        #         discount_info += f"\n💰 ราคารวมสุทธิ: {data['total_price']} บาท"
+        #     self.menu_info.setText(f"{current_text}{discount_info}")
+        
 
 # === Functions ===
 def recognize_speech():
@@ -143,9 +221,6 @@ def recognize_speech():
             return result.alternatives[0].transcript
 
 
-def ask_mira_server(text):
-    response = requests.post(MIRA_SERVER_URL, json={"user_input": text})
-    return response.json()
 
 def fetch_orders():
     response = requests.get(ORDER_API_URL)

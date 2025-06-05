@@ -1,5 +1,12 @@
 PyQt5
 requests
 sounddevice
+soundfile
 gtts
 google-cloud-speech
+python-dotenv
+numpy
+pygame
+SpeechRecognition
+scipy
+webrtcvad

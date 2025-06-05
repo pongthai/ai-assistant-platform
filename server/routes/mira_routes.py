@@ -36,30 +36,38 @@ async def ask_user(req: AskRequest):
     session_id = req.session_id
     user_input = req.user_input.strip()
 
-    reply_text = await ask_gpt(session_id, user_input)
-    logger.debug(f"ask_gpt Reply: {reply_text}")
+    gpt_reply_text = await ask_gpt(session_id, user_input)
+    logger.debug(f"ask_gpt Reply: {gpt_reply_text}")
 
     try:
-        gpt_result = safe_parse_json(reply_text)
+        gpt_result = safe_parse_json(gpt_reply_text)
         handler_result = None
         intent = gpt_result.get("intent", "unknown") if gpt_result else "unknown"
-        reply_ssml = gpt_result.get("response", reply_text) if gpt_result else reply_text
+        gpt_reply_ssml = gpt_result.get("response", gpt_reply_text) if gpt_result else gpt_reply_text
 
         handler_result = await route_intent(intent, gpt_result or {}, session_id)
         logger.debug(f"Handler result: {handler_result}")
 
         if isinstance(handler_result, AssistantResponse):
-            reply_ssml = handler_result.response_ssml or reply_ssml
+            reply_ssml = handler_result.response_ssml or gpt_reply_ssml
             intent = handler_result.intent
     except Exception as e:
         intent = "unknown"
-        reply_ssml = reply_text
+        reply_ssml = gpt_reply_ssml
         result = {"note": "⚠️ GPT reply is not JSON", "error": str(e)}
         logger.error(f"Error processing GPT reply: {result}")
 
     return AssistantResponse(
         intent=intent,
-        response_ssml=reply_ssml
+        response_ssml=reply_ssml,
+        orders=(
+            [order.model_dump() if hasattr(order, "model_dump") else order.dict() if hasattr(order, "dict") else order
+             for order in handler_result.orders]
+            if isinstance(handler_result, AssistantResponse) and getattr(handler_result, "orders", None) is not None
+            else None
+        ),
+        total_price=getattr(handler_result, "total_price", None),
+        discount=getattr(handler_result, "discount", None)
     )
 
 @router.get("/speak/{tts_id}")

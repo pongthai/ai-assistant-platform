@@ -23,6 +23,8 @@ class SessionManager:
             "fresh": True,
             "summary_text": ""
         }
+        self.sessions[session_id]["discounts"] = []
+        self.sessions[session_id]["total_price"] = 0.0
 
     def reset_session(self, session_id):
         self.init_session(session_id)
@@ -152,10 +154,10 @@ class SessionManager:
     def get_summary_text(self, session_id):
         return self.sessions.get(session_id, {}).get("summary_text", "")
     
-    async def get_full_context(self, session_id, max_history: int = None):
+    async def get_full_context(self, session_id, max_history: int = None, include_system_prompt: bool = True):
         async with self.session_locks[session_id]:
             context = []
-            if self.sessions[session_id].get("system_prompt"):
+            if include_system_prompt and self.sessions[session_id].get("system_prompt"):
                 context.append({"role": "system", "content": self.sessions[session_id]["system_prompt"]})
             if self.sessions[session_id].get("summary_text"):
                 context.append({"role": "system", "content": self.sessions[session_id]["summary_text"]})
@@ -165,5 +167,31 @@ class SessionManager:
             context += history
             return context
 
+    def get_total_price(self, session_id: str) -> float:
+        orders = self.sessions[session_id]["orders"]
+        return sum((getattr(item, "discount_price", item.price) or 0) * item.qty for item in orders)
+
+    def apply_discounts(self, session_id: str) -> list:
+        orders = self.sessions[session_id]["orders"]
+        discounts = []
+
+        subtotal = sum((item.price or 0) * item.qty for item in orders)
+        if subtotal > 300:
+            for item in orders:
+                if item.price:
+                    item.discount_price = round(item.price * 0.9, 2)
+            discounts.append("ลด 10% สำหรับยอดสั่งซื้อเกิน 300 บาท")
+
+        self.sessions[session_id]["discounts"] = discounts
+        self.sessions[session_id]["total_price"] = self.get_total_price(session_id)
+        return discounts
+
+    def get_discounts(self, session_id: str) -> list:
+        return self.sessions.get(session_id, {}).get("discounts", [])
+
+    def get_final_price(self, session_id: str) -> float:
+        return self.sessions.get(session_id, {}).get("total_price", 0.0)
+    
     # Create a singleton instance for import
 session_manager = SessionManager()
+    
