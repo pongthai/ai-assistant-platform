@@ -23,3 +23,5 @@ vera_kiosk/secrets
 mira_table/venv
 mira_table/secrets
 secrets/
+mira_client_pi/venv
+

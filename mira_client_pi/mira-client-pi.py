@@ -85,9 +85,10 @@ class MiraUI(QWidget):
     
     def __init__(self):
         super().__init__()
-        self.avatar_scale = 0.80  # Default scale factor for avatar
+        self.avatar_scale = 0.60  # Default scale factor for avatar
         self.setWindowTitle("MIRA Client")
-        self.setGeometry(100, 100, 1024, 600)
+        #self.setGeometry(50, 50, 1024, 600)
+        self.setGeometry(10, 10, 1200, 400)
 
         self.order_list = QListWidget()
         self.avatar_label = QLabel()
