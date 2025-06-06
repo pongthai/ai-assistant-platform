@@ -85,3 +85,10 @@ async def speak(tts_id: str):
 async def reset_session(req: ResetSessionRequest):
     session_manager.reset_session(req.session_id)
     return {"message": "Session reset"}
+
+
+# New endpoint: Expose token usage data for a session
+@router.get("/token-usage/{session_id}")
+async def get_token_usage(session_id: str):
+    usage = session_manager.get_token_usage(session_id)
+    return usage or {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}

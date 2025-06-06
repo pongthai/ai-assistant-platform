@@ -148,7 +148,7 @@ class SessionManager:
             combined_texts.insert(0, previous_summary)
 
         full_text = "\n".join(combined_texts)
-        summary = await gpt_summarize(full_text)
+        summary = await gpt_summarize(full_text,session_id)
         return summary
 
     def get_summary_text(self, session_id):
@@ -192,6 +192,30 @@ class SessionManager:
     def get_final_price(self, session_id: str) -> float:
         return self.sessions.get(session_id, {}).get("total_price", 0.0)
     
+    def log_token_usage(self, session_id: str, usage, source: str):
+        prompt_tokens = usage.prompt_tokens
+        completion_tokens = usage.completion_tokens
+        total_tokens = usage.total_tokens
+
+        token_data = self.sessions[session_id].setdefault("token_usage", {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0
+        })
+
+        token_data["prompt_tokens"] += prompt_tokens
+        token_data["completion_tokens"] += completion_tokens
+        token_data["total_tokens"] += total_tokens
+
+        logger.info(f"[{session_id}] 🔢 Token usage [for {source}]: input={prompt_tokens} / {token_data['prompt_tokens']}, output={completion_tokens} / {token_data['completion_tokens']}, total={total_tokens} / {token_data['total_tokens']}")
+
+    def get_token_usage(self, session_id: str):
+        return self.sessions.get(session_id, {}).get("token_usage", {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0
+        })
+
     # Create a singleton instance for import
 session_manager = SessionManager()
     

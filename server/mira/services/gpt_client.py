@@ -1,5 +1,6 @@
 import asyncio
 import json
+from typing import Optional
 from server.mira.services.session_manager import session_manager
 from server.mira.services.prompt_builder import PromptBuilder
 from openai import OpenAI
@@ -11,7 +12,7 @@ client = OpenAI(api_key=OPENAI_API_KEY)
 
 prompt_builder = PromptBuilder()
 
-async def detect_intent(user_message: str) -> dict:
+async def detect_intent(user_message: str, session_id: Optional[str] = None) -> dict:
     prompt = prompt_builder.build_intent_detection_prompt(user_message)
     messages = [
         {"role": "user", "content": [{"type": "text", "text": prompt}]}
@@ -21,7 +22,7 @@ async def detect_intent(user_message: str) -> dict:
         messages=messages
     )
     usage = response.usage
-    logger.info(f"🔢 Token usage (intent detection): input={usage.prompt_tokens}, output={usage.completion_tokens}, total={usage.total_tokens}")
+    session_manager.log_token_usage(session_id or "intent-detection", usage, source="intent detection")
     try:
         result = response.choices[0].message.content.strip()
         intent_data = json.loads(result)
@@ -37,7 +38,7 @@ async def ask_gpt(session_id: str, user_message: str) -> str:
         session_manager.init_session(session_id, system_prompt=init_prompt)
 
     # 1. Detect coarse intent (Tier-1)
-    intent_data = await detect_intent(user_message)
+    intent_data = await detect_intent(user_message,session_id=session_id)
     coarse_intent = intent_data.get("intent", "unknown")
     menu_scope = intent_data.get("menu_scope", "n/a")
     logger.debug(f"Detected intent: {intent_data}")
@@ -73,11 +74,11 @@ async def ask_gpt(session_id: str, user_message: str) -> str:
     session_manager.add_assistant_reply(session_id, reply)
     asyncio.create_task(session_manager.summarize_if_needed(session_id))
     usage = response.usage
-    logger.info(f"🔢 Token usage (ask_gpt): input={usage.prompt_tokens}, output={usage.completion_tokens}, total={usage.total_tokens}")
+    session_manager.log_token_usage(session_id, usage, source="prompt")
     return reply
 
 # Summarization function
-async def gpt_summarize(text: str) -> str:
+async def gpt_summarize(text: str, session_id: Optional[str] = None) -> str:
     logger.info("Sending summarization request to OpenAI")
     logger.debug(f"📝 Text to summarize: {text}")
     messages = [
@@ -96,5 +97,7 @@ async def gpt_summarize(text: str) -> str:
     )
     summary = response.choices[0].message.content.strip()
     usage = response.usage
-    logger.info(f"🔢 Token usage (summary): input={usage.prompt_tokens}, output={usage.completion_tokens}, total={usage.total_tokens}")
+    session_manager.log_token_usage(session_id or "summary", usage, source="summary")
     return summary
+
+

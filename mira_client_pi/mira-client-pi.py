@@ -128,6 +128,14 @@ class MiraUI(QWidget):
         self.thread.started.connect(self.worker.run)
         self.thread.start()
 
+    def resizeEvent(self, event):
+        print("Resized:", self.size())
+        super().resizeEvent(event)
+
+    def moveEvent(self, event):
+        print("Moved:", self.pos())
+        super().moveEvent(event)
+        
     def update_order_list(self, order_data):
         self.order_list.clear()
         logger.info("Enter update_order_list")
