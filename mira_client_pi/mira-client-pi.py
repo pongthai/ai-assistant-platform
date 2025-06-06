@@ -14,6 +14,7 @@ from google.cloud import speech
 from gtts import gTTS
 from mira_table.controller.interaction_manager import InteractionManager
 import os
+import re
 from core.utils.logger_config import get_logger
 
 logger = get_logger(__name__)
@@ -85,32 +86,46 @@ class MiraUI(QWidget):
     
     def __init__(self):
         super().__init__()
-        self.avatar_scale = 0.60  # Default scale factor for avatar
+        self.avatar_scale = 0.50  # Default scale factor for avatar
         self.setWindowTitle("MIRA Client")
         #self.setGeometry(50, 50, 1024, 600)
-        self.setGeometry(10, 10, 1024, 300)
+        #self.setGeometry(0, 0, 1280, 1200)
+        self.showMaximized()
 
+        # === UI ===
         self.order_list = QListWidget()
+
+        # Avatar setup
         self.avatar_label = QLabel()
         self.avatar_movie = QMovie("./mira_client_pi/assets/pingping_static_v3.png")
         if not self.avatar_movie.isValid():
             print("❌ QMovie failed to load GIF")
-        # self.avatar_movie.setScaledSize(
-        #     self.avatar_movie.currentPixmap().size() * self.avatar_scale
-        # )
         self.avatar_label.setMovie(self.avatar_movie)
         self.avatar_movie.start()
 
+        # Placeholder for menu image or advertisement
+        self.placeholder_label = QLabel("[TBD]]")
+        self.placeholder_label.setAlignment(Qt.AlignCenter)
+
+        # Text response area
         self.menu_info = QTextBrowser()
         self.menu_info.setText("Waiting for command...")
 
-        right_panel = QVBoxLayout()
-        right_panel.addWidget(self.avatar_label)
-        right_panel.addWidget(self.menu_info)
+        # Create layout hierarchy
+        # Top right: avatar + placeholder (horizontal)
+        top_right_panel = QHBoxLayout()
+        top_right_panel.addWidget(self.avatar_label, 1)
+        top_right_panel.addWidget(self.placeholder_label, 2)
 
+        # Right panel: top (avatar+placeholder) + bottom (text response)
+        right_panel = QVBoxLayout()
+        right_panel.addLayout(top_right_panel, 4)
+        right_panel.addWidget(self.menu_info, 1)
+
+        # Main layout: left (order list) + right
         layout = QHBoxLayout()
-        layout.addWidget(self.order_list, 2)
-        layout.addLayout(right_panel, 3)
+        layout.addWidget(self.order_list, 1)
+        layout.addLayout(right_panel, 4)
 
         self.setLayout(layout)
 
@@ -127,6 +142,10 @@ class MiraUI(QWidget):
 
         self.thread.started.connect(self.worker.run)
         self.thread.start()
+
+    def strip_ssml_tags(self,ssml_text: str) -> str:
+        # Remove SSML tags
+        return re.sub(r'<[^>]+>', '', ssml_text).strip()
 
     def resizeEvent(self, event):
         print("Resized:", self.size())
@@ -192,7 +211,9 @@ class MiraUI(QWidget):
         
         user_text = data.get("user_text", "")
         response_ssml = data.get("response_ssml", "")
-        self.menu_info.setText(f"🧑‍💬: {user_text}\n🤖: {response_ssml}")
+        plain_text = self.strip_ssml_tags(response_ssml)
+
+        self.menu_info.setText(f"You: {user_text}\nMira: {plain_text}")
         # if "orders" in data:
         #     self.update_order_list(data["orders"])
         
